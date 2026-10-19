@@ -263,7 +263,7 @@ def open_server(bind_ip, port, backlog):
 
 
 def wait_for_connection(server):
-    # Enter di stdin => kembali ke menu (None); koneksi masuk => socket.
+   
     while True:
         readable, _, _ = select.select([server, sys.stdin], [], [])
         if sys.stdin in readable:
@@ -338,10 +338,18 @@ def main():
     if any(port is not None and not 1 <= port <= 65535 for port in (args.port, args.kdc_port, args.bob_port)):
         parser.error("Port harus 1-65535.")
 
-    keys = read_keys(args.role)
-    if args.role == "alice":
-        kdc_ip = args.kdc_ip or input("IP KDC: ").strip()
-        bob_ip = args.bob_ip or input("IP Bob: ").strip()
+    try:
+        keys = read_keys(args.role)
+        if args.role == "alice":
+            kdc_ip = args.kdc_ip or input("IP KDC: ").strip()
+            bob_ip = args.bob_ip or input("IP Bob: ").strip()
+    except (KeyboardInterrupt, EOFError):
+        print()
+        return
+    if args.role == "alice" and (not kdc_ip or not bob_ip or
+                                 kdc_ip == "0.0.0.0" or bob_ip == "0.0.0.0"):
+        print("IP tujuan KDC/Bob harus diisi; 0.0.0.0 hanya untuk listen.")
+        return
 
     while True:
         try:
